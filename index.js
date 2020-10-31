@@ -13,6 +13,7 @@ if (undefined === process.env.TELEGRAM_TO || '' === process.env.TELEGRAM_TO) {
 const { Telegraf } = require('telegraf')
 const TelegrafI18n = require('telegraf-i18n')
 const path = require('path')
+const emoji = require('node-emoji')
 
 const i18n = new TelegrafI18n({
     useSession: true,
@@ -32,6 +33,8 @@ bot.use(async ({ chat }, next) => {
 
     await next()
 })
+
+bot.start((ctx) => ctx.reply(emoji.emojify(ctx.i18n.t('start'))))
 
 bot.launch()
 
