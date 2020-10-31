@@ -1,0 +1,32 @@
+{
+  "name": "monitorbot",
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "An Heroku hosted Telegram bot to monitor a list of websites",
+  "keywords": [
+    "telegram",
+    "bot",
+    "monitor",
+    "website"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:inigochoa/monitorbot.git"
+  },
+  "author": {
+    "email": "contact@inigochoa.me",
+    "name": "Iñigo Ochoa",
+    "url": "https://inigochoa.me/"
+  },
+  "homepage": "https://github.com/inigochoa/monitorbot#README.md",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "node-emoji": "^1.10.0",
+    "telegraf": "^3.38.0",
+    "telegraf-i18n": "^6.6.0"
+  }
+}
