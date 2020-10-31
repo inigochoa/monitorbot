@@ -11,9 +11,20 @@ if (undefined === process.env.TELEGRAM_TO || '' === process.env.TELEGRAM_TO) {
 }
 
 const { Telegraf } = require('telegraf')
+const TelegrafI18n = require('telegraf-i18n')
+const path = require('path')
+
+const i18n = new TelegrafI18n({
+    useSession: true,
+    defaultLanguage: process.env.LOCALE || 'en',
+    defaultLanguageOnMissing: true,
+    directory: path.resolve(__dirname, 'locales')
+})
 
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN)
 
+bot.use(Telegraf.session())
+bot.use(i18n.middleware())
 bot.use(async ({ chat }, next) => {
     if (parseInt(process.env.TELEGRAM_TO) !== chat.id) {
         return
