@@ -19,5 +19,12 @@
     "url": "https://inigochoa.me/"
   },
   "homepage": "https://github.com/inigochoa/monitorbot#README.md",
-  "main": "index.js"
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "telegraf": "^3.38.0"
+  }
 }
