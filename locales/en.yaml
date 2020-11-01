@@ -1,1 +1,2 @@
+list: 'Your tracked URLs are:'
 start: ':wave: Hi ${from.first_name}! I''m your personal website monitor bot. My mission is to track a list of websites and notify status changes.'

@@ -47,6 +47,14 @@ bot.use(async ({ chat }, next) => {
 
 bot.start((ctx) => ctx.reply(emoji.emojify(ctx.i18n.t('start'))))
 
+const selectQuery = 'SELECT * FROM websites'
+
+bot.command('list', (ctx) => {
+    pool.query(selectQuery)
+    .then((res) => ctx.reply(ctx.i18n.t('list') + '\n\n' + res.rows.map((website) => website.url).join('\n')))
+    .catch((err) => console.error(err.stack))
+})
+
 bot.launch()
 
 console.info('Monitor bot launched')
