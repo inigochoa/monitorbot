@@ -10,6 +10,17 @@ if (undefined === process.env.TELEGRAM_TO || '' === process.env.TELEGRAM_TO) {
     process.exit(1)
 }
 
+if (undefined === process.env.DATABASE_URL || '' === process.env.DATABASE_URL) {
+    console.error('You have to set the environment variable DATABASE_URL with the URL of a PostgreSQL database')
+    process.exit(1)
+}
+
+const { Pool } = require('pg')
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: 'development' !== process.env.NODE_ENV },
+})
+
 const { Telegraf } = require('telegraf')
 const TelegrafI18n = require('telegraf-i18n')
 const path = require('path')
