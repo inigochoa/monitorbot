@@ -30,6 +30,7 @@
     "node-emoji": "^1.10.0",
     "node-pg-migrate": "^5.8.1",
     "pg": "^8.4.2",
-    "telegraf": "^3.38.0"
+    "telegraf": "^3.38.0",
+    "telegraf-command-parts": "^1.0.3"
   }
 }
