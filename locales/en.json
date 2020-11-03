@@ -3,11 +3,18 @@
 		"add": {
 			"added": "{{{url}}} added to the track list",
 			"already": "{{{url}}} already added",
-			"empty": "You need to provid a URL or a list of URLs",
+			"empty": "You need to provide a URL or a list of URLs",
 			"not-added": "{{{url}}} could not be added to the track list",
 			"not-valid": "{{{url}}} is not a valid URL"
 		},
 		"list": "Your tracked URLs are:",
+		"remove": {
+			"empty": "You need to provide a URL or a list of URLs",
+			"not-found": "{{{url}}} not found in the tracking list",
+			"not-removed": "{{{url}}} not removed from the tracking list",
+			"not-valid": "{{{url}}} is not a valid URL",
+			"removed": "{{{url}}} removed from the tracking list"
+		},
 		"start": ":wave: Hi {{name}}! I'm your personal monitor bot. My mission is to track a list of websites and notify status changes."
 	},
 	"error": {
