@@ -35,7 +35,7 @@ bot.start(({ from, reply}) => {
     reply(emoji.emojify(i18n.__('command.start', { name: from.first_name })))
 })
 
-const { getAll, getWebsite, insert } = require('./utils/db')
+const { getAll, getWebsite, insert, remove } = require('./utils/db')
 
 bot.command('list', (ctx) => {
     getAll()
@@ -45,7 +45,7 @@ bot.command('list', (ctx) => {
 
 const { isValidURL } = require('./utils/url')
 
-bot.command('add', ({ state, reply } ) => {
+bot.command('add', ({ state, reply }) => {
     const args = state.command.splitArgs.filter((el) => '' !== el)
 
     if (0 === args.length) {
@@ -75,6 +75,40 @@ bot.command('add', ({ state, reply } ) => {
             insert(url)
             .then(() => reply(i18n.__('command.add.added', { url })))
             .catch(() => reply(i18n.__('command.add.not-added', { url })))
+        })
+    })
+})
+
+bot.command('remove', ({ state, reply }) => {
+    const args = state.command.splitArgs.filter((el) => '' !== el)
+
+    if (0 === args.length) {
+        reply(i18n.__('command.remove.empty'))
+
+        return
+    }
+
+    args
+    .filter((url) => {
+        let isValid = isValidURL(url)
+        if (!isValid) {
+            reply(i18n.__('command.remove.not-valid', { url }))
+        }
+
+        return isValid
+    })
+    .map((url) => {
+        getWebsite(url)
+        .then(({ rowCount }) => {
+            if (0 === rowCount) {
+                reply(i18n.__('command.remove.not-found', { url }))
+
+                return
+            }
+
+            remove(url)
+            .then(() => reply(i18n.__('command.remove.removed', { url })))
+            .catch(() => reply(i18n.__('command.remove.not-removed', { url })))
         })
     })
 })
