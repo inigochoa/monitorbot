@@ -25,6 +25,7 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "cron": "^1.8.2",
     "dotenv": "^8.2.0",
     "i18n": "^0.13.2",
     "node-emoji": "^1.10.0",

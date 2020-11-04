@@ -35,7 +35,7 @@ bot.start(({ from, reply}) => {
     reply(emoji.emojify(i18n.__('command.start', { name: from.first_name })))
 })
 
-const { getAll, getWebsite, insert, remove } = require('./utils/db')
+const { getAll, getWebsite, insert, remove, update } = require('./utils/db')
 
 bot.command('list', (ctx) => {
     getAll()
@@ -43,7 +43,7 @@ bot.command('list', (ctx) => {
     .catch((err) => console.error(err.stack))
 })
 
-const { isValidURL } = require('./utils/url')
+const { isValidURL, checkStatus } = require('./utils/url')
 
 bot.command('add', ({ state, reply }) => {
     const args = state.command.splitArgs.filter((el) => '' !== el)
@@ -70,6 +70,10 @@ bot.command('add', ({ state, reply }) => {
                 reply(i18n.__('command.add.already', { url }))
 
                 return
+            }
+
+            if (!url.startsWith('https://') && !url.startsWith('http://')) {
+                url = `http://${url}`
             }
 
             insert(url, url.startsWith('https://'))
@@ -119,3 +123,35 @@ bot.command('remove', ({ state, reply }) => {
 bot.launch()
 
 console.info(i18n.__('launched'))
+
+const CronJob = require('cron').CronJob
+let checkStatusJob = new CronJob('*/1 * * * *', function() {
+    getAll()
+    .then(({ rows }) => rows.map((website) => checkStatus(website, (url, success, statusCode) => {
+        if (success !== website.isUp) {
+            checkStatusCallback(url, success, statusCode)
+        }
+
+        let upCycles = (success) ? website.upCycles + 1 : website.upCycles
+        let downCycles = (success) ? website.downCycles : website.downCycles + 1
+
+        update([success, upCycles, downCycles, url])
+    })))
+}, null, true, 'Europe/Madrid')
+checkStatusJob.start()
+
+function checkStatusCallback(url, success, statusCode) {
+    if (!success) {
+        bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.unknown', { url })))
+
+        return
+    }
+
+    if (400 <= statusCode && 600 > statusCode) {
+        bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.error', { url, statusCode })))
+
+        return
+    }
+
+    bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.success', { url })))
+}
