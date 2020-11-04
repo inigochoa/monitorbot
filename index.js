@@ -72,9 +72,12 @@ bot.command('add', ({ state, reply }) => {
                 return
             }
 
-            insert(url)
+            insert(url, url.startsWith('https://'))
             .then(() => reply(i18n.__('command.add.added', { url })))
-            .catch(() => reply(i18n.__('command.add.not-added', { url })))
+            .catch((err) => {
+                console.log(err)
+                reply(i18n.__('command.add.not-added', { url }))
+            })
         })
     })
 })

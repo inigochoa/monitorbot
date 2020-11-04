@@ -7,13 +7,13 @@ const pool = new Pool({
 
 const allQuery = 'SELECT * FROM websites'
 const selectQuery = 'SELECT * FROM websites WHERE url = $1'
-const insertQuery = 'INSERT INTO websites (url) VALUES ($1)'
+const insertQuery = 'INSERT INTO websites ("url", "isHttps") VALUES ($1, $2)'
 const deleteQuery = 'DELETE FROM websites WHERE url = $1'
 
 exports.getAll = () => pool.query(allQuery)
 
 exports.getWebsite = (url) => pool.query(selectQuery, [url])
 
-exports.insert = (url) => pool.query(insertQuery, [url])
+exports.insert = (url, isHttps) => pool.query(insertQuery, [url, isHttps])
 
 exports.remove = (url) => pool.query(deleteQuery, [url])
