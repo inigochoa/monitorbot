@@ -15,6 +15,11 @@
 			"not-valid": "{{{url}}} is not a valid URL",
 			"removed": "{{{url}}} removed from the tracking list"
 		},
+		"report": {
+			"error": "{{{url}}} is down :disappointed: {{uptime}}% uptime",
+			"header": "Status report as of {{date}} at {{time}}",
+			"success": "{{{url}}} is up :smile: {{uptime}}% uptime"
+		},
 		"start": ":wave: Hi {{name}}! I'm your personal monitor bot. My mission is to track a list of websites and notify status changes."
 	},
 	"error": {

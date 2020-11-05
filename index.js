@@ -1,6 +1,6 @@
 require('dotenv').config()
 
-const { i18n, emoji } = require('./utils/i18n')
+const { i18n, emoji, moment } = require('./utils/i18n')
 
 if (undefined === process.env.TELEGRAM_TOKEN || '' === process.env.TELEGRAM_TOKEN) {
     console.error(i18n.__('error.token'))
@@ -120,6 +120,8 @@ bot.command('remove', ({ state, reply }) => {
     })
 })
 
+bot.command('report', () => sendReport())
+
 bot.launch()
 
 console.info(i18n.__('launched'))
@@ -140,6 +142,9 @@ let checkStatusJob = new CronJob('*/1 * * * *', function() {
 }, null, true, 'Europe/Madrid')
 checkStatusJob.start()
 
+let reportJob = new CronJob('0 21 * * *', () => sendReport())
+reportJob.start()
+
 function checkStatusCallback(url, success, statusCode) {
     if (!success) {
         bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.unknown', { url })))
@@ -154,4 +159,20 @@ function checkStatusCallback(url, success, statusCode) {
     }
 
     bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.success', { url })))
+}
+
+function sendReport() {
+    getAll()
+    .then((res) => {
+        let message = i18n.__('command.report.header', { date: moment().format('LL'), time: moment().format('LT') })
+        message += '\n\n'
+        message += res.rows.map((website) => {
+            let uptime = Math.round(website.upCycles / (website.upCycles + website.downCycles) * 100 * 100) / 100
+
+            return (website.isUp) ? i18n.__('command.report.success', { url: website.url, uptime }) : i18n.__('command.report.error', { url: website.url, uptime })
+        }).join('\n')
+
+        bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(message))
+    })
+    .catch((err) => console.error(err.stack))
 }
