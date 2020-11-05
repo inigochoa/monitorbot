@@ -122,6 +122,33 @@ bot.command('remove', ({ state, reply }) => {
 
 bot.command('report', () => sendReport())
 
+bot.command('check', ({ state, reply }) => {
+    const args = state.command.splitArgs.filter((el) => '' !== el)
+
+    if (0 === args.length) {
+        reply(i18n.__('command.check.empty'))
+
+        return
+    }
+
+    args
+    .filter((url) => {
+        let isValid = isValidURL(url)
+        if (!isValid) {
+            reply(i18n.__('command.check.not-valid', { url }))
+        }
+
+        return isValid
+    })
+    .map((url) => {
+        if (!url.startsWith('https://') && !url.startsWith('http://')) {
+            url = `http://${url}`
+        }
+
+        checkStatus({ url: url, isHttps: url.startsWith('https://') }, checkStatusCallback)
+    })
+})
+
 bot.launch()
 
 console.info(i18n.__('launched'))
