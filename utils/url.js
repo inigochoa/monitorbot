@@ -1,7 +1,7 @@
 const HTTP = require('http')
 const HTTPS = require('https')
 
-exports.isValidURL = url => {
+const isValidURL = url => {
     const pattern = new RegExp(
         '^(https?:\\/\\/)?' + // protocol
         '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,})' + // domain name
@@ -25,4 +25,25 @@ exports.checkStatus = (website, callback) => {
         console.error(`URL error: ${url}`)
         callback(url, false)
     })
+}
+
+exports.filterUrls = (urls, reply) => {
+    urls.filter(url => '' !== url)
+
+    if (0 === urls.length) {
+        reply(i18n.__('error.url.empy'))
+
+        return urls
+    }
+
+    urls.filter(url => {
+        const isValid = isValidURL(url)
+        if (!isValid) {
+            reply(i18n.__('error.url.not-valid', { url }))
+        }
+
+        return isValid
+    })
+
+    return urls
 }

@@ -46,108 +46,51 @@ bot.command('list', ({ reply }) => {
     .then(res => reply(i18n.__('command.list') + '\n\n' + res.rows.map(website => website.url).join('\n')))
 })
 
-const { isValidURL, checkStatus } = require('./utils/url')
+const { checkStatus, filterUrls } = require('./utils/url')
 
-bot.command('add', ({ state, reply }) => {
-    const args = state.command.splitArgs.filter(el => '' !== el)
+bot.command('add', ({ state, reply }) => filterUrls(state.command.splitArgs, reply).map(url => {
+    getWebsite(url)
+    .then(({ rowCount }) => {
+        if (0 < rowCount) {
+            reply(i18n.__('command.add.already', { url }))
 
-    if (0 === args.length) {
-        reply(i18n.__('command.add.empty'))
-
-        return
-    }
-
-    args
-    .filter(url => {
-        let isValid = isValidURL(url)
-        if (!isValid) {
-            reply(i18n.__('command.add.not-valid', { url }))
+            return
         }
 
-        return isValid
-    })
-    .map(url => {
-        getWebsite(url)
-        .then(({ rowCount }) => {
-            if (0 < rowCount) {
-                reply(i18n.__('command.add.already', { url }))
-
-                return
-            }
-
-            if (!url.startsWith('https://') && !url.startsWith('http://')) {
-                url = `http://${url}`
-            }
-
-            insert(url, url.startsWith('https://'))
-            .then(() => reply(i18n.__('command.add.added', { url })))
-            .catch(() => reply(i18n.__('command.add.not-added', { url })))
-        })
-    })
-})
-
-bot.command('remove', ({ state, reply }) => {
-    const args = state.command.splitArgs.filter(el => '' !== el)
-
-    if (0 === args.length) {
-        reply(i18n.__('command.remove.empty'))
-
-        return
-    }
-
-    args
-    .filter(url => {
-        let isValid = isValidURL(url)
-        if (!isValid) {
-            reply(i18n.__('command.remove.not-valid', { url }))
-        }
-
-        return isValid
-    })
-    .map(url => {
-        getWebsite(url)
-        .then(({ rowCount }) => {
-            if (0 === rowCount) {
-                reply(i18n.__('command.remove.not-found', { url }))
-
-                return
-            }
-
-            remove(url)
-            .then(() => reply(i18n.__('command.remove.removed', { url })))
-            .catch(() => reply(i18n.__('command.remove.not-removed', { url })))
-        })
-    })
-})
-
-bot.command('report', () => sendReport())
-
-bot.command('check', ({ state, reply }) => {
-    const args = state.command.splitArgs.filter(el => '' !== el)
-
-    if (0 === args.length) {
-        reply(i18n.__('command.check.empty'))
-
-        return
-    }
-
-    args
-    .filter(url => {
-        let isValid = isValidURL(url)
-        if (!isValid) {
-            reply(i18n.__('command.check.not-valid', { url }))
-        }
-
-        return isValid
-    })
-    .map(url => {
         if (!url.startsWith('https://') && !url.startsWith('http://')) {
             url = `http://${url}`
         }
 
-        checkStatus({ url: url, isHttps: url.startsWith('https://') }, checkStatusCallback)
+        insert(url, url.startsWith('https://'))
+        .then(() => reply(i18n.__('command.add.added', { url })))
+        .catch(() => reply(i18n.__('command.add.not-added', { url })))
     })
-})
+}))
+
+bot.command('remove', ({ state, reply }) => filterUrls(state.command.splitArgs, reply).map(url => {
+    getWebsite(url)
+    .then(({ rowCount }) => {
+        if (0 === rowCount) {
+            reply(i18n.__('command.remove.not-found', { url }))
+
+            return
+        }
+
+        remove(url)
+        .then(() => reply(i18n.__('command.remove.removed', { url })))
+        .catch(() => reply(i18n.__('command.remove.not-removed', { url })))
+    })
+}))
+
+bot.command('report', () => sendReport())
+
+bot.command('check', ({ state, reply }) => filterUrls(state.command.splitArgs, reply).map(url => {
+    if (!url.startsWith('https://') && !url.startsWith('http://')) {
+        url = `http://${url}`
+    }
+
+    checkStatus({ url: url, isHttps: url.startsWith('https://') }, checkStatusCallback)
+}))
 
 bot.launch()
 
