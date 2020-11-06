@@ -82,7 +82,10 @@ bot.command('remove', ({ state, reply }) => filterUrls(state.command.splitArgs, 
     })
 }))
 
-bot.command('report', () => sendReport())
+bot.command('report', () => {
+    getAll()
+    .then(res => sendReport(res))
+})
 
 bot.command('check', ({ state, reply }) => filterUrls(state.command.splitArgs, reply).map(url => {
     if (!url.startsWith('https://') && !url.startsWith('http://')) {
@@ -97,25 +100,27 @@ bot.launch()
 console.info(i18n.__('launched'))
 
 const CronJob = require('cron').CronJob
-let checkStatusJob = new CronJob('*/1 * * * *', function() {
+let checkStatusJob = new CronJob('*/1 * * * *', () => {
     getAll()
     .then(({ rows }) => rows.map(website => checkStatus(website, (url, success, statusCode) => {
         if (success !== website.isUp) {
             checkStatusCallback(url, success, statusCode)
         }
 
-        let upCycles = (success) ? website.upCycles + 1 : website.upCycles
-        let downCycles = (success) ? website.downCycles : website.downCycles + 1
+        const upCycles = (success) ? website.upCycles + 1 : website.upCycles
 
-        update([success, upCycles, downCycles, url])
+        update([success, upCycles, website.totalCycles + 1, url])
     })))
 }, null, true, 'Europe/Madrid')
 checkStatusJob.start()
 
-let reportJob = new CronJob('0 21 * * *', () => sendReport())
+let reportJob = new CronJob('0 22 * * *', () => {
+    getAll()
+    .then(res => sendReport(res))
+}, null, true, 'Europe/Madrid')
 reportJob.start()
 
-function checkStatusCallback(url, success, statusCode) {
+const checkStatusCallback = (url, success, statusCode) => {
     if (!success) {
         bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.unknown', { url })))
 
@@ -131,17 +136,15 @@ function checkStatusCallback(url, success, statusCode) {
     bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.success', { url })))
 }
 
-function sendReport() {
-    getAll()
-    .then(res => {
-        let message = i18n.__('command.report.header', { date: moment().format('LL'), time: moment().format('LT') })
-        message += '\n\n'
-        message += res.rows.map(website => {
-            let uptime = Math.round(website.upCycles / (website.upCycles + website.downCycles) * 100 * 100) / 100
+const { percentage, round } = require('./utils/utils')
+const sendReport = res => {
+    let message = i18n.__('command.report.header', { date: moment().format('LL'), time: moment().format('LT') })
+    message += '\n\n'
+    message += res.rows.map(website => {
+        let uptime = round(percentage(website.upCycles, website.totalCycles))
 
-            return (website.isUp) ? i18n.__('command.report.success', { url: website.url, uptime }) : i18n.__('command.report.error', { url: website.url, uptime })
-        }).join('\n')
+        return (website.isUp) ? i18n.__('command.report.success', { url: website.url, uptime }) : i18n.__('command.report.error', { url: website.url, uptime })
+    }).join('\n')
 
-        bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(message))
-    })
+    bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(message))
 }
