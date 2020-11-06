@@ -37,22 +37,19 @@ bot.use(async ({ chat, leaveChat, reply }, next) => {
     await next()
 })
 
-bot.start(({ from, reply}) => {
-    reply(emoji.emojify(i18n.__('command.start', { name: from.first_name })))
-})
+bot.start(({ from, reply}) => reply(emoji.emojify(i18n.__('command.start', { name: from.first_name }))))
 
 const { getAll, getWebsite, insert, remove, update } = require('./utils/db')
 
-bot.command('list', (ctx) => {
+bot.command('list', ({ reply }) => {
     getAll()
-    .then((res) => ctx.reply(i18n.__('command.list') + '\n\n' + res.rows.map((website) => website.url).join('\n')))
-    .catch((err) => console.error(err.stack))
+    .then(res => reply(i18n.__('command.list') + '\n\n' + res.rows.map(website => website.url).join('\n')))
 })
 
 const { isValidURL, checkStatus } = require('./utils/url')
 
 bot.command('add', ({ state, reply }) => {
-    const args = state.command.splitArgs.filter((el) => '' !== el)
+    const args = state.command.splitArgs.filter(el => '' !== el)
 
     if (0 === args.length) {
         reply(i18n.__('command.add.empty'))
@@ -61,7 +58,7 @@ bot.command('add', ({ state, reply }) => {
     }
 
     args
-    .filter((url) => {
+    .filter(url => {
         let isValid = isValidURL(url)
         if (!isValid) {
             reply(i18n.__('command.add.not-valid', { url }))
@@ -69,7 +66,7 @@ bot.command('add', ({ state, reply }) => {
 
         return isValid
     })
-    .map((url) => {
+    .map(url => {
         getWebsite(url)
         .then(({ rowCount }) => {
             if (0 < rowCount) {
@@ -84,16 +81,13 @@ bot.command('add', ({ state, reply }) => {
 
             insert(url, url.startsWith('https://'))
             .then(() => reply(i18n.__('command.add.added', { url })))
-            .catch((err) => {
-                console.log(err)
-                reply(i18n.__('command.add.not-added', { url }))
-            })
+            .catch(() => reply(i18n.__('command.add.not-added', { url })))
         })
     })
 })
 
 bot.command('remove', ({ state, reply }) => {
-    const args = state.command.splitArgs.filter((el) => '' !== el)
+    const args = state.command.splitArgs.filter(el => '' !== el)
 
     if (0 === args.length) {
         reply(i18n.__('command.remove.empty'))
@@ -102,7 +96,7 @@ bot.command('remove', ({ state, reply }) => {
     }
 
     args
-    .filter((url) => {
+    .filter(url => {
         let isValid = isValidURL(url)
         if (!isValid) {
             reply(i18n.__('command.remove.not-valid', { url }))
@@ -110,7 +104,7 @@ bot.command('remove', ({ state, reply }) => {
 
         return isValid
     })
-    .map((url) => {
+    .map(url => {
         getWebsite(url)
         .then(({ rowCount }) => {
             if (0 === rowCount) {
@@ -129,7 +123,7 @@ bot.command('remove', ({ state, reply }) => {
 bot.command('report', () => sendReport())
 
 bot.command('check', ({ state, reply }) => {
-    const args = state.command.splitArgs.filter((el) => '' !== el)
+    const args = state.command.splitArgs.filter(el => '' !== el)
 
     if (0 === args.length) {
         reply(i18n.__('command.check.empty'))
@@ -138,7 +132,7 @@ bot.command('check', ({ state, reply }) => {
     }
 
     args
-    .filter((url) => {
+    .filter(url => {
         let isValid = isValidURL(url)
         if (!isValid) {
             reply(i18n.__('command.check.not-valid', { url }))
@@ -146,7 +140,7 @@ bot.command('check', ({ state, reply }) => {
 
         return isValid
     })
-    .map((url) => {
+    .map(url => {
         if (!url.startsWith('https://') && !url.startsWith('http://')) {
             url = `http://${url}`
         }
@@ -162,7 +156,7 @@ console.info(i18n.__('launched'))
 const CronJob = require('cron').CronJob
 let checkStatusJob = new CronJob('*/1 * * * *', function() {
     getAll()
-    .then(({ rows }) => rows.map((website) => checkStatus(website, (url, success, statusCode) => {
+    .then(({ rows }) => rows.map(website => checkStatus(website, (url, success, statusCode) => {
         if (success !== website.isUp) {
             checkStatusCallback(url, success, statusCode)
         }
@@ -196,10 +190,10 @@ function checkStatusCallback(url, success, statusCode) {
 
 function sendReport() {
     getAll()
-    .then((res) => {
+    .then(res => {
         let message = i18n.__('command.report.header', { date: moment().format('LL'), time: moment().format('LT') })
         message += '\n\n'
-        message += res.rows.map((website) => {
+        message += res.rows.map(website => {
             let uptime = Math.round(website.upCycles / (website.upCycles + website.downCycles) * 100 * 100) / 100
 
             return (website.isUp) ? i18n.__('command.report.success', { url: website.url, uptime }) : i18n.__('command.report.error', { url: website.url, uptime })
@@ -207,5 +201,4 @@ function sendReport() {
 
         bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(message))
     })
-    .catch((err) => console.error(err.stack))
 }

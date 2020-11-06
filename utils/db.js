@@ -13,10 +13,10 @@ const updateQuery = 'UPDATE websites set "isUp" = $1, "upCycles" = $2, "downCycl
 
 exports.getAll = () => pool.query(allQuery)
 
-exports.getWebsite = (url) => pool.query(selectQuery, [url])
+exports.getWebsite = url => pool.query(selectQuery, [url])
 
 exports.insert = (url, isHttps) => pool.query(insertQuery, [url, isHttps])
 
-exports.remove = (url) => pool.query(deleteQuery, [url])
+exports.remove = url => pool.query(deleteQuery, [url])
 
-exports.update = (values) => pool.query(updateQuery, values)
+exports.update = values => pool.query(updateQuery, values)
