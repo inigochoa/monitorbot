@@ -23,8 +23,14 @@ const commandParts = require('telegraf-command-parts')
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN)
 
 bot.use(commandParts())
-bot.use(async ({ chat }, next) => {
+bot.use(async ({ chat, leaveChat, reply }, next) => {
     if (parseInt(process.env.TELEGRAM_TO) !== chat.id) {
+        reply(i18n.__('error.leave'))
+
+        if ('private' !== chat.type) {
+            leaveChat()
+        }
+
         return
     }
 

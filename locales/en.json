@@ -24,6 +24,7 @@
 	},
 	"error": {
 		"database": "You have to set the environment variable DATABASE_URL with the URL of a PostgreSQL database",
+		"leave": "I'm sorry. I am a private bot. I am not authorized to chat with you.",
 		"target": "You have to set the environment variable TELEGRAM_TO with the ID of the target chat",
 		"token": "You have to set the environment variable TELEGRAM_TOKEN with the value from @BotFather"
 	},
