@@ -1,6 +1,6 @@
 require('dotenv').config()
 
-const { i18n, emoji, moment } = require('./utils/i18n')
+const { i18n, emoji, moment, TZ } = require('./utils/i18n')
 
 if (undefined === process.env.TELEGRAM_TOKEN || '' === process.env.TELEGRAM_TOKEN) {
     console.error(i18n.__('console.error.token'))
@@ -98,7 +98,7 @@ console.info(emoji.emojify(i18n.__('console.launched')))
 
 const CronJob = require('cron').CronJob
 
-let checkStatusJob = new CronJob('*/1 * * * *', () => {
+let checkStatusJob = new CronJob(process.env.CRON_STATUS || '*/1 * * * *', () => {
     getAll()
     .then(({ rows }) => {
         rows
@@ -114,13 +114,13 @@ let checkStatusJob = new CronJob('*/1 * * * *', () => {
             })
         })
     })
-}, null, true, 'Europe/Madrid')
+}, null, true, TZ)
 checkStatusJob.start()
 
-let reportJob = new CronJob('0 22 * * *', () => {
+let reportJob = new CronJob(process.env.CRON_REPORT || '0 22 * * *', () => {
     getAll()
     .then(res => sendReport(res))
-}, null, true, 'Europe/Madrid')
+}, null, true, TZ)
 reportJob.start()
 
 const checkStatusCallback = (url, success, statusCode) => {

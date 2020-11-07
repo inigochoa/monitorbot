@@ -29,6 +29,7 @@
     "dotenv": "^8.2.0",
     "i18n": "^0.13.2",
     "moment": "^2.29.1",
+    "moment-timezone": "^0.5.31",
     "node-emoji": "^1.10.0",
     "node-pg-migrate": "^5.8.1",
     "pg": "^8.4.2",
