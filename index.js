@@ -18,88 +18,102 @@ if (undefined === process.env.DATABASE_URL || '' === process.env.DATABASE_URL) {
 }
 
 const { Telegraf } = require('telegraf')
-const commandParts = require('telegraf-command-parts')
 const { botGuard } = require('./utils/bot')
+const commandParts = require('telegraf-command-parts')
 
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN)
-
-bot.use(commandParts())
 bot.use(botGuard())
-
-bot.start(({ from, reply}) => reply(emoji.emojify(i18n.__('command.start', { name: from.first_name }))))
+bot.use(commandParts())
 
 const { getAll, getWebsite, insert, remove, update } = require('./utils/db')
+const { checkStatus, filterUrls } = require('./utils/url')
+const { percentage, round } = require('./utils/utils')
+
+bot.start(({ from, reply}) => reply(emoji.emojify(i18n.__('command.start', { name: from.first_name }))))
 
 bot.command('list', ({ reply }) => {
     getAll()
     .then(res => reply(i18n.__('command.list') + '\n\n' + res.rows.map(website => website.url).join('\n')))
 })
 
-const { checkStatus, filterUrls } = require('./utils/url')
+bot.command('add', ({ state, reply }) => {
+    filterUrls(state.command.splitArgs, reply)
+    .map(url => {
+        getWebsite(url)
+        .then(({ rowCount }) => {
+            if (0 < rowCount) {
+                reply(i18n.__('command.add.already', { url }))
 
-bot.command('add', ({ state, reply }) => filterUrls(state.command.splitArgs, reply).map(url => {
-    getWebsite(url)
-    .then(({ rowCount }) => {
-        if (0 < rowCount) {
-            reply(i18n.__('command.add.already', { url }))
+                return
+            }
 
-            return
-        }
+            if (!url.startsWith('https://') && !url.startsWith('http://')) {
+                url = `http://${url}`
+            }
 
-        if (!url.startsWith('https://') && !url.startsWith('http://')) {
-            url = `http://${url}`
-        }
-
-        insert(url, url.startsWith('https://'))
-        .then(() => reply(i18n.__('command.add.added', { url })))
-        .catch(() => reply(i18n.__('command.add.not-added', { url })))
+            insert(url, url.startsWith('https://'))
+            .then(() => reply(i18n.__('command.add.added', { url })))
+            .catch(() => reply(i18n.__('command.add.not-added', { url })))
+        })
     })
-}))
+})
 
-bot.command('remove', ({ state, reply }) => filterUrls(state.command.splitArgs, reply).map(url => {
-    getWebsite(url)
-    .then(({ rowCount }) => {
-        if (0 === rowCount) {
-            reply(i18n.__('command.remove.not-found', { url }))
+bot.command('remove', ({ state, reply }) => {
+    filterUrls(state.command.splitArgs, reply)
+    .map(url => {
+        getWebsite(url)
+        .then(({ rowCount }) => {
+            if (0 === rowCount) {
+                reply(i18n.__('command.remove.not-found', { url }))
 
-            return
-        }
+                return
+            }
 
-        remove(url)
-        .then(() => reply(i18n.__('command.remove.removed', { url })))
-        .catch(() => reply(i18n.__('command.remove.not-removed', { url })))
+            remove(url)
+            .then(() => reply(i18n.__('command.remove.removed', { url })))
+            .catch(() => reply(i18n.__('command.remove.not-removed', { url })))
+        })
     })
-}))
+})
 
 bot.command('report', () => {
     getAll()
     .then(res => sendReport(res))
 })
 
-bot.command('check', ({ state, reply }) => filterUrls(state.command.splitArgs, reply).map(url => {
-    if (!url.startsWith('https://') && !url.startsWith('http://')) {
-        url = `http://${url}`
-    }
+bot.command('check', ({ state, reply }) => {
+    filterUrls(state.command.splitArgs, reply)
+    .map(url => {
+        if (!url.startsWith('https://') && !url.startsWith('http://')) {
+            url = `http://${url}`
+        }
 
-    checkStatus({ url: url, isHttps: url.startsWith('https://') }, checkStatusCallback)
-}))
+        checkStatus({ url: url, isHttps: url.startsWith('https://') }, checkStatusCallback)
+    })
+})
 
 bot.launch()
 
 console.info(i18n.__('launched'))
 
 const CronJob = require('cron').CronJob
+
 let checkStatusJob = new CronJob('*/1 * * * *', () => {
     getAll()
-    .then(({ rows }) => rows.map(website => checkStatus(website, (url, success, statusCode) => {
-        if (success !== website.isUp) {
-            checkStatusCallback(url, success, statusCode)
-        }
+    .then(({ rows }) => {
+        rows
+        .map(website => {
+            checkStatus(website, (url, success, statusCode) => {
+                if (success !== website.isUp) {
+                    checkStatusCallback(url, success, statusCode)
+                }
 
-        const upCycles = (success) ? website.upCycles + 1 : website.upCycles
+                const upCycles = (success) ? website.upCycles + 1 : website.upCycles
 
-        update([success, upCycles, website.totalCycles + 1, url])
-    })))
+                update([success, upCycles, website.totalCycles + 1, url])
+            })
+        })
+    })
 }, null, true, 'Europe/Madrid')
 checkStatusJob.start()
 
@@ -125,11 +139,10 @@ const checkStatusCallback = (url, success, statusCode) => {
     bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.success', { url })))
 }
 
-const { percentage, round } = require('./utils/utils')
-const sendReport = res => {
+const sendReport = ({ rows }) => {
     let message = i18n.__('command.report.header', { date: moment().format('LL'), time: moment().format('LT') })
     message += '\n\n'
-    message += res.rows.map(website => {
+    message += rows.map(website => {
         let uptime = round(percentage(website.upCycles, website.totalCycles))
 
         return (website.isUp) ? i18n.__('command.report.success', { url: website.url, uptime }) : i18n.__('command.report.error', { url: website.url, uptime })
