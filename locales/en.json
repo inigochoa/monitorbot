@@ -1,23 +1,39 @@
 {
 	"command": {
 		"add": {
+			"command": "add",
+			"description": "Add a URL or a list of URLs to the tracking list",
 			"reply": ":writing_hand: {{{url}}} added to the track list"
 		},
+		"check": {
+			"command": "check",
+			"description": "Check the status of a URL or a list of URLs"
+		},
+		"help": {
+			"description": "Display bot usage info",
+			"reply": "You can control me by sending these commands:\n\n{{{commands}}}"
+		},
 		"list": {
-			"reply": ":point_right: Your tracked URLs are:"
+			"command": "list",
+			"description": "Display the tracking list",
+			"reply": ":point_right: Your tracked URLs are:\n\n{{{urls}}}"
 		},
 		"remove": {
+			"command": "remove",
+			"description": "Remove a URL or a list of URLs from the tracking list",
 			"reply": ":wastebasket: {{{url}}} removed from the tracking list"
 		},
 		"report": {
+			"command": "report",
+			"description": "Display a report of the tracked URLs",
 			"reply": {
 				"error": "{{{url}}} is down :worried: ({{uptime}}% uptime)",
-				"header": ":male-detective: Status report as of {{date}} at {{time}}",
+				"message": ":male-detective: Status report as of {{date}} at {{time}}\n\n{{{urls}}}",
 				"success": "{{{url}}} is up :smile: ({{uptime}}% uptime)"
 			}
 		},
 		"start": {
-			"reply": ":wave: Hi {{name}}! I'm your personal monitor bot. My mission is to track :mag: a list of websites and notify :speech_balloon: status changes."
+			"reply": ":wave: Hi {{name}}! I'm your personal monitor bot.\n\nI can help you track :mag: a list of websites and notify :speech_balloon: status changes."
 		}
 	},
 	"console": {

@@ -32,7 +32,7 @@ exports.filterUrls = (urls, reply) => {
     urls = urls.filter(url => '' !== url)
 
     if (0 === urls.length) {
-        reply(i18n.__('error.url.empy'))
+        reply(i18n.__('error.url.empty'))
 
         return urls
     }

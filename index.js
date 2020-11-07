@@ -21,9 +21,19 @@ const { Telegraf } = require('telegraf')
 const { botGuard } = require('./utils/bot')
 const commandParts = require('telegraf-command-parts')
 
+const commands = [
+    { command: 'help', description: i18n.__('command.help.description') },
+    { command: i18n.__('command.check.command'), description: i18n.__('command.check.description') },
+    { command: i18n.__('command.add.command'), description: i18n.__('command.add.description') },
+    { command: i18n.__('command.remove.command'), description: i18n.__('command.remove.description') },
+    { command: i18n.__('command.list.command'), description: i18n.__('command.list.description') },
+    { command: i18n.__('command.report.command'), description: i18n.__('command.report.description') },
+]
+
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN)
 bot.use(botGuard())
 bot.use(commandParts())
+bot.telegram.setMyCommands(commands)
 
 const { getAll, getWebsite, insert, remove, update } = require('./utils/db')
 const { checkStatus, filterUrls } = require('./utils/url')
@@ -31,12 +41,20 @@ const { percentage, round } = require('./utils/utils')
 
 bot.start(({ from, reply}) => reply(emoji.emojify(i18n.__('command.start.reply', { name: from.first_name }))))
 
-bot.command('list', ({ reply }) => {
-    getAll()
-    .then(res => reply(emoji.emojify(i18n.__('command.list.reply') + '\n\n' + res.rows.map(website => website.url).join('\n'))))
+bot.help(({ reply }) => reply(helpMessage()))
+
+bot.command(i18n.__('command.check.command'), ({ state, reply }) => {
+    filterUrls(state.command.splitArgs, reply)
+    .map(url => {
+        if (!url.startsWith('https://') && !url.startsWith('http://')) {
+            url = `http://${url}`
+        }
+
+        checkStatus({ url, isHttps: url.startsWith('https://') }, checkStatusCallback)
+    })
 })
 
-bot.command('add', ({ state, reply }) => {
+bot.command(i18n.__('command.add.command'), ({ state, reply }) => {
     filterUrls(state.command.splitArgs, reply)
     .map(url => {
         getWebsite(url)
@@ -58,7 +76,7 @@ bot.command('add', ({ state, reply }) => {
     })
 })
 
-bot.command('remove', ({ state, reply }) => {
+bot.command(i18n.__('command.remove.command'), ({ state, reply }) => {
     filterUrls(state.command.splitArgs, reply)
     .map(url => {
         getWebsite(url)
@@ -76,20 +94,18 @@ bot.command('remove', ({ state, reply }) => {
     })
 })
 
-bot.command('report', () => {
+bot.command(i18n.__('command.list.command'), ({ reply }) => {
     getAll()
-    .then(res => sendReport(res))
+    .then(res => {
+        let urls = res.rows.map(website => website.url).join('\n')
+
+        reply(emoji.emojify(i18n.__('command.list.reply', { urls })))
+    })
 })
 
-bot.command('check', ({ state, reply }) => {
-    filterUrls(state.command.splitArgs, reply)
-    .map(url => {
-        if (!url.startsWith('https://') && !url.startsWith('http://')) {
-            url = `http://${url}`
-        }
-
-        checkStatus({ url, isHttps: url.startsWith('https://') }, checkStatusCallback)
-    })
+bot.command(i18n.__('command.report.command'), () => {
+    getAll()
+    .then(res => sendReport(res))
 })
 
 bot.launch()
@@ -123,6 +139,8 @@ let reportJob = new CronJob(process.env.CRON_REPORT || '0 22 * * *', () => {
 }, null, true, TZ)
 reportJob.start()
 
+const helpMessage = () => emoji.emojify(i18n.__('command.help.reply', { commands: commands.map(command => '/' + command.command + ' - ' + command.description).join('\n') }))
+
 const checkStatusCallback = (url, success, statusCode) => {
     if (!success) {
         bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.unknown', { url })))
@@ -140,9 +158,7 @@ const checkStatusCallback = (url, success, statusCode) => {
 }
 
 const sendReport = ({ rows }) => {
-    let message = i18n.__('command.report.reply.header', { date: moment().format('LL'), time: moment().format('LT') })
-    message += '\n\n'
-    message += rows.map(website => {
+    let urls = rows.map(website => {
         let uptime = round(percentage(website.upCycles, website.totalCycles))
         let params = { url: website.url, uptime }
 
@@ -150,6 +166,8 @@ const sendReport = ({ rows }) => {
             ? i18n.__('command.report.reply.success', params)
             : i18n.__('command.report.reply.error', params)
     }).join('\n')
+
+    let message = i18n.__('command.report.reply.message', { date: moment().format('LL'), time: moment().format('LT'), urls })
 
     bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(message))
 }
