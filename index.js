@@ -70,7 +70,7 @@ bot.command(i18n.__('command.add.command'), ({ state, reply }) => {
             }
 
             insert(url, url.startsWith('https://'))
-            .then(() => reply(i18n.__('command.add.reply', { url }), Extra.webPreview(false)))
+            .then(() => reply(emoji.emojify(i18n.__('command.add.reply', { url })), Extra.webPreview(false)))
             .catch(() => reply(i18n.__('error.url.not-added', { url }), Extra.webPreview(false)))
         })
     })
@@ -88,7 +88,7 @@ bot.command(i18n.__('command.remove.command'), ({ state, reply }) => {
             }
 
             remove(url)
-            .then(() => reply(i18n.__('command.remove.reply', { url }), Extra.webPreview(false)))
+            .then(() => reply(emoji.emojify(i18n.__('command.remove.reply', { url })), Extra.webPreview(false)))
             .catch(() => reply(i18n.__('error.url.not-removed', { url }), Extra.webPreview(false)))
         })
     })
