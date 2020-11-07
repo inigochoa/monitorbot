@@ -17,7 +17,7 @@ if (undefined === process.env.DATABASE_URL || '' === process.env.DATABASE_URL) {
     process.exit(1)
 }
 
-const { Telegraf } = require('telegraf')
+const { Extra, Telegraf } = require('telegraf')
 const { botGuard } = require('./utils/bot')
 const commandParts = require('telegraf-command-parts')
 
@@ -70,8 +70,8 @@ bot.command(i18n.__('command.add.command'), ({ state, reply }) => {
             }
 
             insert(url, url.startsWith('https://'))
-            .then(() => reply(i18n.__('command.add.reply', { url })))
-            .catch(() => reply(i18n.__('error.url.not-added', { url })))
+            .then(() => reply(i18n.__('command.add.reply', { url }), Extra.webPreview(false)))
+            .catch(() => reply(i18n.__('error.url.not-added', { url }), Extra.webPreview(false)))
         })
     })
 })
@@ -88,8 +88,8 @@ bot.command(i18n.__('command.remove.command'), ({ state, reply }) => {
             }
 
             remove(url)
-            .then(() => reply(i18n.__('command.remove.reply', { url })))
-            .catch(() => reply(i18n.__('error.url.not-removed', { url })))
+            .then(() => reply(i18n.__('command.remove.reply', { url }), Extra.webPreview(false)))
+            .catch(() => reply(i18n.__('error.url.not-removed', { url }), Extra.webPreview(false)))
         })
     })
 })
@@ -99,7 +99,7 @@ bot.command(i18n.__('command.list.command'), ({ reply }) => {
     .then(res => {
         let urls = res.rows.map(website => website.url).join('\n')
 
-        reply(emoji.emojify(i18n.__('command.list.reply', { urls })))
+        reply(emoji.emojify(i18n.__('command.list.reply', { urls })), Extra.webPreview(false))
     })
 })
 
@@ -143,18 +143,18 @@ const helpMessage = () => emoji.emojify(i18n.__('command.help.reply', { commands
 
 const checkStatusCallback = (url, success, statusCode) => {
     if (!success) {
-        bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.unknown', { url })))
+        bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.unknown', { url })), { disable_web_page_preview: true })
 
         return
     }
 
     if (400 <= statusCode && 600 > statusCode) {
-        bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.error', { url, statusCode })))
+        bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.error', { url, statusCode })), { disable_web_page_preview: true })
 
         return
     }
 
-    bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.success', { url })))
+    bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.success', { url })), { disable_web_page_preview: true })
 }
 
 const sendReport = ({ rows }) => {
@@ -169,5 +169,5 @@ const sendReport = ({ rows }) => {
 
     let message = i18n.__('command.report.reply.message', { date: moment().format('LL'), time: moment().format('LT'), urls })
 
-    bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(message))
+    bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(message), { disable_web_page_preview: true })
 }
