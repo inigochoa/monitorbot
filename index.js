@@ -39,7 +39,7 @@ const { getAll, getWebsite, insert, remove, update } = require('./utils/db')
 const { checkStatus, filterUrls } = require('./utils/url')
 const { percentage, round } = require('./utils/utils')
 
-bot.start(({ from, reply}) => reply(emoji.emojify(i18n.__('command.start.reply', { name: from.first_name }))))
+bot.start(({ from, reply}) => reply(emoji.emojify(i18n.__('command.start.reply', { name: from.first_name, helpMessage: helpMessage() }))))
 
 bot.help(({ reply }) => reply(helpMessage()))
 

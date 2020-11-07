@@ -33,7 +33,7 @@
 			}
 		},
 		"start": {
-			"reply": ":wave: Hi {{name}}! I'm your personal monitor bot.\n\nI can help you track :mag: a list of websites and notify :speech_balloon: status changes."
+			"reply": ":wave: Hi {{name}}! I'm your personal monitor bot.\n\nI can help you track :mag: a list of websites and notify :speech_balloon: status changes.\n\n{{{helpMessage}}}"
 		}
 	},
 	"console": {
