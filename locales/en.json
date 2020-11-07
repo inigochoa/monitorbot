@@ -1,38 +1,48 @@
 {
 	"command": {
 		"add": {
-			"added": "{{{url}}} added to the track list",
-			"already": "{{{url}}} already added",
-			"empty": "You need to provide a URL or a list of URLs",
-			"not-added": "{{{url}}} could not be added to the track list",
-			"not-valid": "{{{url}}} is not a valid URL"
+			"reply": ":writing_hand: {{{url}}} added to the track list"
 		},
-		"list": "Your tracked URLs are:",
+		"list": {
+			"reply": ":point_right: Your tracked URLs are:"
+		},
 		"remove": {
-			"empty": "You need to provide a URL or a list of URLs",
-			"not-found": "{{{url}}} not found in the tracking list",
-			"not-removed": "{{{url}}} not removed from the tracking list",
-			"not-valid": "{{{url}}} is not a valid URL",
-			"removed": "{{{url}}} removed from the tracking list"
+			"reply": ":wastebasket: {{{url}}} removed from the tracking list"
 		},
 		"report": {
-			"error": "{{{url}}} is down :disappointed: {{uptime}}% uptime",
-			"header": "Status report as of {{date}} at {{time}}",
-			"success": "{{{url}}} is up :smile: {{uptime}}% uptime"
+			"reply": {
+				"error": "{{{url}}} is down :worried: ({{uptime}}% uptime)",
+				"header": ":male-detective: Status report as of {{date}} at {{time}}",
+				"success": "{{{url}}} is up :smile: ({{uptime}}% uptime)"
+			}
 		},
-		"start": ":wave: Hi {{name}}! I'm your personal monitor bot. My mission is to track a list of websites and notify status changes."
+		"start": {
+			"reply": ":wave: Hi {{name}}! I'm your personal monitor bot. My mission is to track :mag: a list of websites and notify :speech_balloon: status changes."
+		}
+	},
+	"console": {
+		"error": {
+			"database": "You have to set the environment variable DATABASE_URL with the URL of a PostgreSQL database",
+			"target": "You have to set the environment variable TELEGRAM_TO with the ID of the target chat",
+			"token": "You have to set the environment variable TELEGRAM_TOKEN with the value from @BotFather"
+		},
+		"launched": "Monitor bot launched :rocket:",
+		"status": {
+			"error": "URL error: {{{url}}}",
+			"success": "URL: {{{url}}} || Status code: {{statusCode}}"
+		}
 	},
 	"error": {
-		"database": "You have to set the environment variable DATABASE_URL with the URL of a PostgreSQL database",
-		"leave": "I'm sorry. I am a private bot. I am not authorized to chat with you.",
-		"target": "You have to set the environment variable TELEGRAM_TO with the ID of the target chat",
-		"token": "You have to set the environment variable TELEGRAM_TOKEN with the value from @BotFather",
+		"private": ":no_entry: Sorry, I am a private bot and I am not authorized to chat with you.",
 		"url": {
+			"already": "{{{url}}} already added",
 			"empty": "You need to provide an URL or a list of URLs",
+			"not-added": "{{{url}}} could not be added to the track list",
+			"not-found": "{{{url}}} not found in the tracking list",
+			"not-removed": "{{{url}}} not removed from the tracking list",
 			"not-valid": "{{{url}}} is not a valid URL"
 		}
 	},
-	"launched": "Monitor bot launched",
 	"status": {
 		"error": "{{{url}}} is responding, but the status code is {{statusCode}} :worried:",
 		"success": "{{{url}}} is up :smile:",

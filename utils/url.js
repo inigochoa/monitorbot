@@ -1,5 +1,6 @@
 const HTTP = require('http')
 const HTTPS = require('https')
+const { i18n } = require('./i18n')
 
 const isValidURL = url => {
     const pattern = new RegExp(
@@ -18,17 +19,17 @@ exports.checkStatus = (website, callback) => {
     let url = website.url
 
     request.get(url, ({ statusCode }) => {
-        console.info(`URL: ${url} || Status code: ${statusCode}`)
+        console.info(i18n.__('console.status.success', { url, statusCode }))
         callback(url, true, statusCode)
     })
     .on('error', () => {
-        console.error(`URL error: ${url}`)
+        console.error(i18n.__('console.status.error', { url }))
         callback(url, false)
     })
 }
 
 exports.filterUrls = (urls, reply) => {
-    urls.filter(url => '' !== url)
+    urls = urls.filter(url => '' !== url)
 
     if (0 === urls.length) {
         reply(i18n.__('error.url.empy'))
@@ -36,7 +37,7 @@ exports.filterUrls = (urls, reply) => {
         return urls
     }
 
-    urls.filter(url => {
+    urls = urls.filter(url => {
         const isValid = isValidURL(url)
         if (!isValid) {
             reply(i18n.__('error.url.not-valid', { url }))

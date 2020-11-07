@@ -3,17 +3,17 @@ require('dotenv').config()
 const { i18n, emoji, moment } = require('./utils/i18n')
 
 if (undefined === process.env.TELEGRAM_TOKEN || '' === process.env.TELEGRAM_TOKEN) {
-    console.error(i18n.__('error.token'))
+    console.error(i18n.__('console.error.token'))
     process.exit(1)
 }
 
 if (undefined === process.env.TELEGRAM_TO || '' === process.env.TELEGRAM_TO) {
-    console.error(i18n.__('error.target'))
+    console.error(i18n.__('console.error.target'))
     process.exit(1)
 }
 
 if (undefined === process.env.DATABASE_URL || '' === process.env.DATABASE_URL) {
-    console.error(i18n.__('error.database'))
+    console.error(i18n.__('console.error.database'))
     process.exit(1)
 }
 
@@ -29,11 +29,11 @@ const { getAll, getWebsite, insert, remove, update } = require('./utils/db')
 const { checkStatus, filterUrls } = require('./utils/url')
 const { percentage, round } = require('./utils/utils')
 
-bot.start(({ from, reply}) => reply(emoji.emojify(i18n.__('command.start', { name: from.first_name }))))
+bot.start(({ from, reply}) => reply(emoji.emojify(i18n.__('command.start.reply', { name: from.first_name }))))
 
 bot.command('list', ({ reply }) => {
     getAll()
-    .then(res => reply(i18n.__('command.list') + '\n\n' + res.rows.map(website => website.url).join('\n')))
+    .then(res => reply(emoji.emojify(i18n.__('command.list.reply') + '\n\n' + res.rows.map(website => website.url).join('\n'))))
 })
 
 bot.command('add', ({ state, reply }) => {
@@ -42,7 +42,7 @@ bot.command('add', ({ state, reply }) => {
         getWebsite(url)
         .then(({ rowCount }) => {
             if (0 < rowCount) {
-                reply(i18n.__('command.add.already', { url }))
+                reply(i18n.__('error.url.already', { url }))
 
                 return
             }
@@ -52,8 +52,8 @@ bot.command('add', ({ state, reply }) => {
             }
 
             insert(url, url.startsWith('https://'))
-            .then(() => reply(i18n.__('command.add.added', { url })))
-            .catch(() => reply(i18n.__('command.add.not-added', { url })))
+            .then(() => reply(i18n.__('command.add.reply', { url })))
+            .catch(() => reply(i18n.__('error.url.not-added', { url })))
         })
     })
 })
@@ -64,14 +64,14 @@ bot.command('remove', ({ state, reply }) => {
         getWebsite(url)
         .then(({ rowCount }) => {
             if (0 === rowCount) {
-                reply(i18n.__('command.remove.not-found', { url }))
+                reply(i18n.__('error.url.not-found', { url }))
 
                 return
             }
 
             remove(url)
-            .then(() => reply(i18n.__('command.remove.removed', { url })))
-            .catch(() => reply(i18n.__('command.remove.not-removed', { url })))
+            .then(() => reply(i18n.__('command.remove.reply', { url })))
+            .catch(() => reply(i18n.__('error.url.not-removed', { url })))
         })
     })
 })
@@ -88,13 +88,13 @@ bot.command('check', ({ state, reply }) => {
             url = `http://${url}`
         }
 
-        checkStatus({ url: url, isHttps: url.startsWith('https://') }, checkStatusCallback)
+        checkStatus({ url, isHttps: url.startsWith('https://') }, checkStatusCallback)
     })
 })
 
 bot.launch()
 
-console.info(i18n.__('launched'))
+console.info(emoji.emojify(i18n.__('console.launched')))
 
 const CronJob = require('cron').CronJob
 
@@ -140,12 +140,15 @@ const checkStatusCallback = (url, success, statusCode) => {
 }
 
 const sendReport = ({ rows }) => {
-    let message = i18n.__('command.report.header', { date: moment().format('LL'), time: moment().format('LT') })
+    let message = i18n.__('command.report.reply.header', { date: moment().format('LL'), time: moment().format('LT') })
     message += '\n\n'
     message += rows.map(website => {
         let uptime = round(percentage(website.upCycles, website.totalCycles))
+        let params = { url: website.url, uptime }
 
-        return (website.isUp) ? i18n.__('command.report.success', { url: website.url, uptime }) : i18n.__('command.report.error', { url: website.url, uptime })
+        return (website.isUp)
+            ? i18n.__('command.report.reply.success', params)
+            : i18n.__('command.report.reply.error', params)
     }).join('\n')
 
     bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(message))
