@@ -19,23 +19,12 @@ if (undefined === process.env.DATABASE_URL || '' === process.env.DATABASE_URL) {
 
 const { Telegraf } = require('telegraf')
 const commandParts = require('telegraf-command-parts')
+const { botGuard } = require('./utils/bot')
 
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN)
 
 bot.use(commandParts())
-bot.use(async ({ chat, leaveChat, reply }, next) => {
-    if (parseInt(process.env.TELEGRAM_TO) !== chat.id) {
-        reply(i18n.__('error.leave'))
-
-        if ('private' !== chat.type) {
-            leaveChat()
-        }
-
-        return
-    }
-
-    await next()
-})
+bot.use(botGuard())
 
 bot.start(({ from, reply}) => reply(emoji.emojify(i18n.__('command.start', { name: from.first_name }))))
 
