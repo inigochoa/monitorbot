@@ -9,7 +9,7 @@ const allQuery = 'SELECT * FROM websites'
 const selectQuery = 'SELECT * FROM websites WHERE url = $1'
 const insertQuery = 'INSERT INTO websites ("url", "isHttps") VALUES ($1, $2)'
 const deleteQuery = 'DELETE FROM websites WHERE url = $1'
-const updateQuery = 'UPDATE websites set "isUp" = $1, "upCycles" = $2, "totalCycles" = $3, "lastCheck" = NOW() WHERE url = $4'
+const updateQuery = 'UPDATE websites set "isUp" = $1, "upCycles" = $2, "downCycles" = $3, "totalCycles" = $4, "lastCheck" = NOW() WHERE url = $5'
 
 exports.getAll = () => pool.query(allQuery)
 

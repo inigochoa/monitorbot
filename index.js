@@ -125,8 +125,13 @@ let checkStatusJob = new CronJob(process.env.CRON_STATUS || '*/1 * * * *', () =>
                 }
 
                 const upCycles = (success) ? website.upCycles + 1 : website.upCycles
+                const downCycles = (success) ? 0 : website.downCycles + 1
 
-                update([success, upCycles, website.totalCycles + 1, url])
+                update([success, upCycles, downCycles, website.totalCycles + 1, url])
+
+                if (!success && (0 == downCycles % 10)) {
+                    checkStatusCallback(url, success, statusCode)
+                }
             })
         })
     })
