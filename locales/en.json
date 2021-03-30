@@ -38,7 +38,7 @@
 	},
 	"console": {
 		"error": {
-			"database": "You have to set the environment variable DATABASE_URL with the URL of a PostgreSQL database",
+			"database": "You have to set the environment variables of a Firebase Firestore database",
 			"target": "You have to set the environment variable TELEGRAM_TO with the ID of the target chat",
 			"token": "You have to set the environment variable TELEGRAM_TOKEN with the value from @BotFather"
 		},
