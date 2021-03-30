@@ -2,6 +2,8 @@
 
 ![GitHub package.json version]
 
+> :warning: **If you are looking for potsgres version, switch to [v1.* branch]**
+
 ## What is it?
 
 I am your private bot for web page monitoring. I can check the status of any web
@@ -32,7 +34,8 @@ within the chat that you have configured for me.
 cp default.env .env
 ```
 
-2. Create a new PostgreSQL database and set the URL in the .env file.
+2. Create a new Firebase Firestore database and set the connection values in the
+.env file. [You can read the docs at Google]
 
 3. Configure the telegram variables.
 
@@ -95,6 +98,8 @@ coffee.
 <p align="center"><a href="https://www.buymeacoffee.com/inigochoa" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a></p>
 
 [GitHub package.json version]: https://img.shields.io/github/package-json/v/inigochoa/monitorbot?label=Version&style=flat-square
+[v1.* branch]: https://github.com/inigochoa/monitorbot/tree/postgres
+[You can read the docs at Google]: https://firebase.google.com/docs/firestore/quickstart?hl=en
 [@BotFather]: https://t.me/BotFather
 [here]: https://stackoverflow.com/a/32572159
 [Crontab guru]: https://crontab.guru/

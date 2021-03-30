@@ -1,22 +1,32 @@
-const { Pool } = require('pg')
+const firebase = require('firebase')
+firebase.initializeApp({
+    apiKey: process.env.FIRESTORE_API_KEY,
+    appId: process.env.FIRESTORE_APP_ID,
+    authDomain: process.env.FIRESTORE_AUTH_DOMAIN,
+    databaseURL: process.env.FIRESTORE_DATABASE_URL,
+    messagingSenderId: process.env.FIRESTORE_MESSAGING_SENDER_ID,
+    projectId: process.env.FIRESTORE_PROJECT_ID,
+    storageBucket: process.env.FIRESTORE_STORAGE_BUCKET,
+})
+const db = firebase.firestore().collection('systems')
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: 'development' !== process.env.NODE_ENV }
+exports.getAll = () => db.get()
+
+exports.getWebsite = url => db.where('url', '==', url).get()
+
+exports.insert = (url, isHttps) => db.add({
+    createdAt: firebase.firestore.Timestamp.fromDate(new Date()),
+    downCycles: 0,
+    isHttps,
+    totalCycles: 0,
+    upCycles: 0,
+    url,
 })
 
-const allQuery = 'SELECT * FROM websites'
-const selectQuery = 'SELECT * FROM websites WHERE url = $1'
-const insertQuery = 'INSERT INTO websites ("url", "isHttps") VALUES ($1, $2)'
-const deleteQuery = 'DELETE FROM websites WHERE url = $1'
-const updateQuery = 'UPDATE websites set "isUp" = $1, "upCycles" = $2, "downCycles" = $3, "totalCycles" = $4, "lastCheck" = NOW() WHERE url = $5'
+exports.remove = id => db.doc(id).delete()
 
-exports.getAll = () => pool.query(allQuery)
+exports.update = (id, values) => {
+    values.updatedAt = firebase.firestore.Timestamp.fromDate(new Date())
 
-exports.getWebsite = url => pool.query(selectQuery, [url])
-
-exports.insert = (url, isHttps) => pool.query(insertQuery, [url, isHttps])
-
-exports.remove = url => pool.query(deleteQuery, [url])
-
-exports.update = values => pool.query(updateQuery, values)
+    db.doc(id).update(values)
+}

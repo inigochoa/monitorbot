@@ -12,7 +12,15 @@ if (undefined === process.env.TELEGRAM_TO || '' === process.env.TELEGRAM_TO) {
     process.exit(1)
 }
 
-if (undefined === process.env.DATABASE_URL || '' === process.env.DATABASE_URL) {
+if (
+    undefined === process.env.FIRESTORE_API_KEY || '' === process.env.FIRESTORE_API_KEY
+    || undefined === process.env.FIRESTORE_APP_ID || '' === process.env.FIRESTORE_APP_ID
+    || undefined === process.env.FIRESTORE_AUTH_DOMAIN || '' === process.env.FIRESTORE_AUTH_DOMAIN
+    || undefined === process.env.FIRESTORE_DATABASE_URL || '' === process.env.FIRESTORE_DATABASE_URL
+    || undefined === process.env.FIRESTORE_MESSAGING_SENDER_ID || '' === process.env.FIRESTORE_MESSAGING_SENDER_ID
+    || undefined === process.env.FIRESTORE_PROJECT_ID || '' === process.env.FIRESTORE_PROJECT_ID
+    || undefined === process.env.FIRESTORE_STORAGE_BUCKET || '' === process.env.FIRESTORE_STORAGE_BUCKET
+) {
     console.error(i18n.__('console.error.database'))
     process.exit(1)
 }
@@ -39,7 +47,7 @@ const { getAll, getWebsite, insert, remove, update } = require('./utils/db')
 const { checkStatus, filterUrls } = require('./utils/url')
 const { percentage, round } = require('./utils/utils')
 
-bot.start(({ from, reply}) => reply(emoji.emojify(i18n.__('command.start.reply', { name: from.first_name, helpMessage: helpMessage() }))))
+bot.start(({ from, reply }) => reply(emoji.emojify(i18n.__('command.start.reply', { name: from.first_name, helpMessage: helpMessage() }))))
 
 bot.help(({ reply }) => reply(helpMessage()))
 
@@ -58,8 +66,8 @@ bot.command(i18n.__('command.add.command'), ({ state, reply }) => {
     filterUrls(state.command.splitArgs, reply)
     .map(url => {
         getWebsite(url)
-        .then(({ rowCount }) => {
-            if (0 < rowCount) {
+        .then(snapshot => {
+            if (0 < snapshot.docs.length) {
                 reply(i18n.__('error.url.already', { url }))
 
                 return
@@ -80,24 +88,26 @@ bot.command(i18n.__('command.remove.command'), ({ state, reply }) => {
     filterUrls(state.command.splitArgs, reply)
     .map(url => {
         getWebsite(url)
-        .then(({ rowCount }) => {
-            if (0 === rowCount) {
+        .then(snapshot => {
+            if (0 === snapshot.docs.length) {
                 reply(i18n.__('error.url.not-found', { url }))
 
                 return
             }
 
-            remove(url)
-            .then(() => reply(emoji.emojify(i18n.__('command.remove.reply', { url })), Extra.webPreview(false)))
-            .catch(() => reply(i18n.__('error.url.not-removed', { url }), Extra.webPreview(false)))
+            snapshot.docs.map(doc => {
+                remove(doc.id)
+                .then(() => reply(emoji.emojify(i18n.__('command.remove.reply', { url })), Extra.webPreview(false)))
+                .catch(() => reply(i18n.__('error.url.not-removed', { url }), Extra.webPreview(false)))
+            })
         })
     })
 })
 
 bot.command(i18n.__('command.list.command'), ({ reply }) => {
     getAll()
-    .then(res => {
-        let urls = res.rows.map(website => website.url).join('\n')
+    .then(snapshot => {
+        let urls = snapshot.docs.map(doc => doc.data().url).join('\n')
 
         reply(emoji.emojify(i18n.__('command.list.reply', { urls })), Extra.webPreview(false))
     })
@@ -105,7 +115,7 @@ bot.command(i18n.__('command.list.command'), ({ reply }) => {
 
 bot.command(i18n.__('command.report.command'), () => {
     getAll()
-    .then(res => sendReport(res))
+    .then(snapshot => sendReport(snapshot))
 })
 
 bot.launch()
@@ -116,31 +126,35 @@ const CronJob = require('cron').CronJob
 
 let checkStatusJob = new CronJob(process.env.CRON_STATUS || '*/1 * * * *', () => {
     getAll()
-    .then(({ rows }) => {
-        rows
-        .map(website => {
-            checkStatus(website, (url, success, statusCode) => {
-                if (success !== website.isUp) {
-                    checkStatusCallback(url, success, statusCode)
-                }
+    .then(snapshot => snapshot.docs.map(doc => {
+        let website = doc.data()
 
-                const upCycles = (success) ? website.upCycles + 1 : website.upCycles
-                const downCycles = (success) ? 0 : website.downCycles + 1
+        checkStatus(website, (url, success, statusCode) => {
+            if (success !== website.isUp) {
+                checkStatusCallback(url, success, statusCode)
+            }
 
-                update([success, upCycles, downCycles, website.totalCycles + 1, url])
+            website = {
+                downCycles: (success) ? 0 : website.downCycles + 1,
+                isUp: success,
+                statusCode: statusCode,
+                totalCycles: website.totalCycles + 1,
+                upCycles: (success) ? website.upCycles + 1 : website.upCycles,
+            }
 
-                if (!success && (0 == downCycles % 10)) {
-                    checkStatusCallback(url, success, statusCode)
-                }
-            })
+            update(doc.id, website)
+
+            if (!success && (0 == website.downCycles % 10)) {
+                checkStatusCallback(url, success, statusCode)
+            }
         })
-    })
+    }))
 }, null, true, TZ)
 checkStatusJob.start()
 
 let reportJob = new CronJob(process.env.CRON_REPORT || '0 22 * * *', () => {
     getAll()
-    .then(res => sendReport(res))
+    .then(snapshot => sendReport(snapshot))
 }, null, true, TZ)
 reportJob.start()
 
@@ -162,8 +176,9 @@ const checkStatusCallback = (url, success, statusCode) => {
     bot.telegram.sendMessage(process.env.TELEGRAM_TO, emoji.emojify(i18n.__('status.success', { url })), { disable_web_page_preview: true })
 }
 
-const sendReport = ({ rows }) => {
-    let urls = rows.map(website => {
+const sendReport = snapshot => {
+    let urls = snapshot.docs.map(doc => {
+        const website = doc.data()
         let uptime = round(percentage(website.upCycles, website.totalCycles))
         let params = { url: website.url, uptime }
 

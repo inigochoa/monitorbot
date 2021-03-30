@@ -21,18 +21,16 @@
   "homepage": "https://github.com/inigochoa/monitorbot#README.md",
   "main": "index.js",
   "scripts": {
-    "migrate": "node-pg-migrate --no-reject-unauthorized",
     "start": "node index.js"
   },
   "dependencies": {
     "cron": "^1.8.2",
     "dotenv": "^8.2.0",
+    "firebase": "^8.3.1",
     "i18n": "^0.13.2",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.31",
     "node-emoji": "^1.10.0",
-    "node-pg-migrate": "^5.8.1",
-    "pg": "^8.4.2",
     "telegraf": "^3.38.0",
     "telegraf-command-parts": "^1.0.3"
   }
