@@ -1,6 +1,6 @@
 {
   "name": "monitorbot",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "license": "MIT",
   "description": "An Heroku hosted Telegram bot to monitor a list of websites",
   "keywords": [
