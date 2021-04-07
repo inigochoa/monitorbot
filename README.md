@@ -76,11 +76,9 @@ free. To carry out the deployment of the project you will need to:
 3. Create a new Heroku app and select GitHub as the deployment method. Choose
 main branch. Enable *Automatic Deploys* if you wish.
 
-4. Add a free **Heroku Postgres** add-on to the app.
+4. In the *Resources* section change the Dyno type from web to **worker**.
 
-5. In the *Resources* section change the Dyno type from web to **worker**.
-
-6. Create the missing environment variables in the *Settings* section.
+5. Create the missing environment variables in the *Settings* section.
 
 ## Contributing
 
