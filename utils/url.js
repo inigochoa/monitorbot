@@ -18,7 +18,9 @@ exports.checkStatus = (website, callback) => {
     let request = (website.isHttps) ? HTTPS : HTTP
     let url = website.url
 
-    request.get(url, ({ statusCode }) => {
+    request.get(url, {
+        insecureHTTPParser: true,
+    }, ({ statusCode }) => {
         console.info(i18n.__('console.status.success', { url, statusCode }))
         callback(url, true, statusCode)
     })
