@@ -19,7 +19,9 @@ exports.checkStatus = (website, callback) => {
     let url = website.url
 
     request.get(url, {
-        rejectUnauthorized: false,
+        npmRequestOptions: {
+            rejectUnauthorized: false,
+        },
     }, ({ statusCode }) => {
         console.info(i18n.__('console.status.success', { url, statusCode }))
         callback(url, true, statusCode)
