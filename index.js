@@ -139,6 +139,10 @@ let checkStatusJob = new CronJob(process.env.CRON_STATUS || '*/1 * * * *', () =>
 checkStatusJob.start()
 
 let reportJob = new CronJob(process.env.CRON_REPORT || '0 22 * * *', () => {
+    if ('true' === process.env.CRON_REPORT_SILENT) {
+        return
+    }
+
     getAll()
     .then(res => sendReport(res))
 }, null, true, TZ)

@@ -46,7 +46,8 @@ following values are used:
 
     - Every minute for the check task.
 
-    - At 10 p.m. for the report task.
+    - At 10 p.m. for the report task. You may silence the report by setting the
+    **CRON_REPORT_SILENT** variable to true.
 
     > [Crontab guru] is a great tool for generating crontab schedule
     expressions.
